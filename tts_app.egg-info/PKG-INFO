@@ -1,3 +1,25 @@
+Metadata-Version: 2.4
+Name: tts-app
+Version: 0.1.0
+Summary: A simple text-to-speech desktop application using Google TTS and PySide6
+License: MIT
+Keywords: text-to-speech,tts,gtts,pyside6,desktop
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: End Users/Desktop
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: Multimedia :: Sound/Audio :: Speech
+Classifier: Environment :: X11 Applications :: Qt
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+Requires-Dist: gtts>=2.5
+Requires-Dist: PySide6>=6.6
+Requires-Dist: pygame>=2.5
+
 # TTS App
 
 A simple desktop application that converts text or text files to speech using

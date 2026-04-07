@@ -1,0 +1,4 @@
+include resources/*
+include help.txt
+include settings.ini
+recursive-include resources *

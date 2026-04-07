@@ -1,0 +1,2 @@
+[console_scripts]
+tts-app = tts_app.main:main

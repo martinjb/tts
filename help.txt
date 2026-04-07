@@ -1,0 +1,119 @@
+TTS App — Help
+==============
+
+OVERVIEW
+--------
+TTS App converts text or plain text files to speech using Google Text-to-Speech.
+An internet connection is required for playback.
+
+
+STATUS DOTS  (row above the editor)
+-------------------------------------
+Two small coloured dots give you at-a-glance feedback:
+
+  Audio dot (left)
+    Dark grey  — no audio generated yet, or no text entered
+    Yellow     — text has changed since last generation (cache stale)
+    Green      — cached audio matches the current text, ready to replay
+    Red        — last generation attempt failed
+
+  Generating dot (right)
+    Dark grey  — idle
+    Orange     — currently generating audio (network request in progress)
+    (returns to dark when generation finishes; Audio dot turns green)
+
+
+MAIN EDITOR
+-----------
+The large text area in the centre of the window is your editor.
+You can type or paste any text here directly.
+The text in this box is what "Read Text" will speak aloud.
+
+If you click "Read Text" or "Read File" again with unchanged text, the
+previously generated audio is reused instantly — no network call is made.
+
+
+CONTROLS TAB
+------------
+Choose File   — Opens a file browser. Select a .txt file to load it.
+               The file name, word count, and file size will appear below
+               the buttons.
+
+Read Text     — Speaks the current contents of the text editor.
+               Switches automatically to the Audio Controls tab.
+
+Read File     — Speaks the contents of the loaded file.
+               Switches automatically to the Audio Controls tab.
+
+
+AUDIO CONTROLS TAB
+------------------
+This tab appears automatically when playback begins.
+
+■ Stop        — Stops playback. Cached audio is kept for instant replay.
+
+⏸ Pause       — Pauses playback. Click again (▶ Resume) to continue.
+
+◄◄  ▶◄  ▶▶   — Decrease / current speed label / Increase playback speed.
+               Speed steps: 0.5× · 0.75× · 1.0× · 1.25× · 1.5× · 2.0×
+               Note: speed changes shift pitch proportionally (a property
+               of the pygame mixer frequency method used).
+
+
+SETTINGS  (Settings menu or Ctrl+,)
+------------------------------------
+Opens a dialog to change:
+
+  Language code  — BCP-47 code (en, es, fr, de, ja …). Use the preset
+                   drop-down to pick common languages quickly.
+  Accent / TLD   — Regional accent variant (affects English voices):
+                   com (global), co.uk (British), com.au (Australian) …
+  Speak slowly   — Check to halve the speaking rate.
+  Volume         — 0 % to 100 %.
+  Window size    — Starting window size (takes effect on next launch).
+
+Click Save to write to settings.ini, or Cancel to discard.
+
+
+SETTINGS FILE  (settings.ini)
+------------------------------
+You can also edit settings.ini directly in any text editor.
+Changes take effect the next time the app starts (except playback
+settings saved via the dialog, which apply immediately).
+
+  [Playback]
+  language  — Language code, e.g. en, es, fr, de, ja
+  slow      — true/false — speak more slowly
+  tld       — Google domain accent: com, co.uk, com.au, ca, co.in
+  volume    — Playback volume from 0.0 (silent) to 1.0 (full)
+
+  [UI]
+  window_width / window_height — Starting window size in pixels
+  stylesheet — Path to the .qss theme file
+  icon       — Path to the .ico icon file
+
+
+CUSTOMISING THE ICON
+--------------------
+Replace resources/icon.ico with any valid .ico file.
+The app will use it on the next launch.
+
+
+CUSTOMISING THE THEME
+---------------------
+Edit resources/style.qss to change colours, fonts, padding, and more.
+Every widget used in the app has at least one rule in the stylesheet,
+making it easy to find and tweak any element.
+Changes take effect on the next launch.
+
+
+TROUBLESHOOTING
+---------------
+• "Network error" or no sound — Check your internet connection. gTTS
+  requires access to translate.google.com.
+• No file loaded — Click "Choose File" before clicking "Read File".
+• Audio dot stays yellow — The text changed since last generation.
+  Click "Read Text" again to regenerate.
+• Speed sounds distorted — Try resetting speed to 1.0× (click ◄◄ or
+  ►► until the label shows 1×).
+

@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tts-app"
+version = "0.1.0"
+description = "A simple text-to-speech desktop application using Google TTS and PySide6"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+keywords = ["text-to-speech", "tts", "gtts", "pyside6", "desktop"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Sound/Audio :: Speech",
+    "Environment :: X11 Applications :: Qt",
+]
+dependencies = [
+    "gtts>=2.5",
+    "PySide6>=6.6",
+    "pygame>=2.5",
+    "miniaudio>=1.57",
+    "pedalboard>=0.9",
+    "numpy>=1.24",
+]
+
+[project.scripts]
+tts-app = "tts_app.main:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["tts_app*"]
+
+[tool.setuptools.package-data]
+"tts_app" = ["../resources/*", "../help.txt", "../settings.ini"]
