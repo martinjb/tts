@@ -133,7 +133,7 @@ class MainWindow(QMainWindow):
 
         self._btn_buffer = QPushButton("Buffer")
         self._btn_buffer.setObjectName("btnBuffer")
-        self._btn_buffer.setToolTip("Pre-build audio on a background thread without playing")
+        self._btn_buffer.setToolTip("Pre-build audio")
 
         self._btn_save = QPushButton("Save Text")
         self._btn_save.setObjectName("btnSave")

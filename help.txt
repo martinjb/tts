@@ -6,6 +6,14 @@ OVERVIEW
 TTS App converts text or plain text files to speech using Google Text-to-Speech.
 An internet connection is required for playback.
 
+REQUIREMENTS
+------------
+gtts              — Google Text-to-Speech library for converting text to audio
+PySide6           — Qt framework bindings for building the desktop GUI
+pygame            — Multimedia library for audio playback
+miniaudio         — Lightweight audio playback engine
+pedalboard        — timestretch() Audio DSP library for effects processing
+numpy             — Numerical computing library for array operations
 
 STATUS DOTS  (row above the editor)
 -------------------------------------
@@ -27,11 +35,7 @@ MAIN EDITOR
 -----------
 The large text area in the centre of the window is your editor.
 You can type or paste any text here directly.
-The text in this box is what "Read Text" will speak aloud.
-
-If you click "Read Text" or "Read File" again with unchanged text, the
-previously generated audio is reused instantly — no network call is made.
-
+The text in this box is what "Read" will speak aloud.
 
 CONTROLS TAB
 ------------
@@ -39,40 +43,29 @@ Choose File   — Opens a file browser. Select a .txt file to load it.
                The file name, word count, and file size will appear below
                the buttons.
 
-Read Text     — Speaks the current contents of the text editor.
+Read          — Speaks the current contents of the text editor.
                Switches automatically to the Audio Controls tab.
 
-Read File     — Speaks the contents of the loaded file.
-               Switches automatically to the Audio Controls tab.
+Buffer        — Pre-builds audio in the background without starting
+               playback. Useful to prepare audio before you are ready
+               to listen.
 
+Save Text     — Saves the current editor contents to a .txt file.
 
-AUDIO CONTROLS TAB
-------------------
-This tab appears automatically when playback begins.
+✕ Cancel      — Cancels audio generation in progress.
 
-■ Stop        — Stops playback. Cached audio is kept for instant replay.
-
-⏸ Pause       — Pauses playback. Click again (▶ Resume) to continue.
-
-◄◄  ▶◄  ▶▶   — Decrease / current speed label / Increase playback speed.
-               Speed steps: 0.5× · 0.75× · 1.0× · 1.25× · 1.5× · 2.0×
-               Note: speed changes shift pitch proportionally (a property
-               of the pygame mixer frequency method used).
 
 
 SETTINGS  (Settings menu or Ctrl+,)
 ------------------------------------
 Opens a dialog to change:
 
-  Language code  — BCP-47 code (en, es, fr, de, ja …). Use the preset
-                   drop-down to pick common languages quickly.
+  Language code  — BCP-47 code (en, es, fr, de, ja …).
   Accent / TLD   — Regional accent variant (affects English voices):
                    com (global), co.uk (British), com.au (Australian) …
   Speak slowly   — Check to halve the speaking rate.
   Volume         — 0 % to 100 %.
-  Window size    — Starting window size (takes effect on next launch).
-
-Click Save to write to settings.ini, or Cancel to discard.
+  Window size    — Starting window size.
 
 
 SETTINGS FILE  (settings.ini)
@@ -87,33 +80,13 @@ settings saved via the dialog, which apply immediately).
   tld       — Google domain accent: com, co.uk, com.au, ca, co.in
   volume    — Playback volume from 0.0 (silent) to 1.0 (full)
 
-  [UI]
-  window_width / window_height — Starting window size in pixels
-  stylesheet — Path to the .qss theme file
-  icon       — Path to the .ico icon file
-
-
-CUSTOMISING THE ICON
---------------------
-Replace resources/icon.ico with any valid .ico file.
-The app will use it on the next launch.
-
-
-CUSTOMISING THE THEME
----------------------
-Edit resources/style.qss to change colours, fonts, padding, and more.
-Every widget used in the app has at least one rule in the stylesheet,
-making it easy to find and tweak any element.
-Changes take effect on the next launch.
-
 
 TROUBLESHOOTING
 ---------------
 • "Network error" or no sound — Check your internet connection. gTTS
   requires access to translate.google.com.
-• No file loaded — Click "Choose File" before clicking "Read File".
+• No file loaded — Click "Choose File" before clicking "Read".
 • Audio dot stays yellow — The text changed since last generation.
-  Click "Read Text" again to regenerate.
-• Speed sounds distorted — Try resetting speed to 1.0× (click ◄◄ or
-  ►► until the label shows 1×).
+  Click "Read" again to regenerate.
+
 

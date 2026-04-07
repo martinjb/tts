@@ -61,7 +61,7 @@ import numpy as np
 import pedalboard
 import pygame
 from gtts import gTTS
-from PySide6.QtCore import QObject, QRunnable, QThreadPool, Signal, Slot
+from PySide6.QtCore import QObject, QRunnable, QThreadPool, QTimer, Signal, Slot
 
 
 # Available playback speed multipliers (1x normal, 2x fast)
@@ -215,6 +215,11 @@ class TTSPlayer(QObject):
         # Cancel support
         self._cancel_flag       = threading.Event()
         self._speed_cancel_flag = threading.Event()
+
+        # Poll for natural end-of-track so playback_finished can be emitted
+        self._end_timer = QTimer(self)
+        self._end_timer.setInterval(200)
+        self._end_timer.timeout.connect(self._check_playback_ended)
 
         pygame.mixer.init(frequency=_SAMPLE_RATE, size=-16, channels=2, buffer=512)
 
@@ -476,13 +481,21 @@ class TTSPlayer(QObject):
             pygame.mixer.music.set_volume(self.volume)
             pygame.mixer.music.play(start=start_pos)
             self._play_start_file_pos = start_pos
+            self._end_timer.start()
             self.playback_started.emit()
         except Exception as exc:  # noqa: BLE001
             self.playback_error.emit(str(exc))
 
     def _stop_playback(self) -> None:
+        self._end_timer.stop()
         if pygame.mixer.get_init() and pygame.mixer.music.get_busy():
             pygame.mixer.music.stop()
+
+    def _check_playback_ended(self) -> None:
+        """Called by QTimer; emits playback_finished when track ends naturally."""
+        if not self._paused and pygame.mixer.get_init() and not pygame.mixer.music.get_busy():
+            self._end_timer.stop()
+            self.playback_finished.emit()
 
     # ------------------------------------------------------------------
     # Cache management
