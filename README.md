@@ -22,14 +22,6 @@ Google Text-to-Speech (gTTS) and PySide6.
 ---
 
 ## Installation
-
-### From PyPI (once published)
-
-```bash
-pip install tts-app
-tts-app
-```
-
 ### From source (development)
 
 ```bash
@@ -37,6 +29,14 @@ git clone <repo-url>
 cd tts
 pip install -e .
 tts-app
+
+### From PyPI (not yet published, so this will not work )
+
+```bash
+pip install tts-app
+tts-app
+```
+
 ```
 
 ---
