@@ -1,8 +1,8 @@
 [Playback]
 language = en
 slow = false
-tld = co.za
-volume = 0.05
+tld = com
+volume = 1.0
 
 [UI]
 window_width = 960
@@ -11,5 +11,4 @@ stylesheet = resources/style.qss
 icon = resources/icon.ico
 
 [File]
-last_dir = E:\SAFE\code
-
+last_dir = 
