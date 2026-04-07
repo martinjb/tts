@@ -22,7 +22,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from tts_app.audio.player import SPEED_STEPS, TTSPlayer
+from tts_app.audio.player import TTSPlayer
 from tts_app.config.settings import Settings
 from tts_app.ui.settings_dialog import SettingsDialog
 from tts_app.ui.status_dots import DotState, StatusIndicator
@@ -90,7 +90,7 @@ class MainWindow(QMainWindow):
         # --- Text editor ---
         self._editor = QTextEdit()
         self._editor.setObjectName("editor")
-        self._editor.setPlaceholderText("Type or paste text here, then click 'Read Text'…")
+        self._editor.setPlaceholderText("Type or paste text here, then click 'Read'…")
         self._editor.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         root_layout.addWidget(self._editor, stretch=1)
 
@@ -127,22 +127,25 @@ class MainWindow(QMainWindow):
         self._btn_choose.setObjectName("btnChooseFile")
         self._btn_choose.setToolTip("Open a plain-text file")
 
-        self._btn_read_text = QPushButton("Read Text")
-        self._btn_read_text.setObjectName("btnReadText")
-        self._btn_read_text.setToolTip("Speak the contents of the text editor")
+        self._btn_read = QPushButton("Read")
+        self._btn_read.setObjectName("btnRead")
+        self._btn_read.setToolTip("Speak the text in the editor")
 
-        self._btn_read_file = QPushButton("Read File")
-        self._btn_read_file.setObjectName("btnReadFile")
-        self._btn_read_file.setToolTip("Speak the loaded file")
-        self._btn_read_file.setEnabled(False)
+        self._btn_buffer = QPushButton("Buffer")
+        self._btn_buffer.setObjectName("btnBuffer")
+        self._btn_buffer.setToolTip("Pre-build audio on a background thread without playing")
+
+        self._btn_save = QPushButton("Save Text")
+        self._btn_save.setObjectName("btnSave")
+        self._btn_save.setToolTip("Save editor contents to a .txt file")
 
         self._btn_cancel = QPushButton("✕  Cancel")
         self._btn_cancel.setObjectName("btnCancel")
         self._btn_cancel.setToolTip("Cancel audio generation in progress")
         self._btn_cancel.setVisible(False)
 
-        for btn in (self._btn_choose, self._btn_read_text,
-                    self._btn_read_file, self._btn_cancel):
+        for btn in (self._btn_choose, self._btn_read, self._btn_buffer,
+                    self._btn_save, self._btn_cancel):
             btn_row.addWidget(btn)
 
         btn_row.addStretch()
@@ -179,40 +182,27 @@ class MainWindow(QMainWindow):
         btn_row = QHBoxLayout()
         btn_row.setSpacing(6)
 
-        self._btn_stop = QPushButton("■  Stop")
+        self._btn_stop = QPushButton("■  Restart")
         self._btn_stop.setObjectName("btnStop")
-        self._btn_stop.setToolTip("Stop playback")
+        self._btn_stop.setToolTip("Restart playback from the beginning")
 
-        self._btn_pause = QPushButton("⏸  Pause")
+        self._btn_pause = QPushButton("▶  Play")
         self._btn_pause.setObjectName("btnPause")
         self._btn_pause.setToolTip("Pause / resume playback")
 
-        # Speed controls
-        self._btn_speed_down = QPushButton("◄◄")
-        self._btn_speed_down.setObjectName("btnSpeedDown")
-        self._btn_speed_down.setToolTip("Decrease playback speed")
-        self._btn_speed_down.setFixedWidth(48)
+        # Speed toggle button
+        self._btn_speed = QPushButton("1x")
+        self._btn_speed.setObjectName("btnSpeed")
+        self._btn_speed.setToolTip("Toggle playback speed (1x / 2x)")
+        self._btn_speed.setFixedWidth(48)
 
-        self._lbl_speed = QLabel(f"{self._player.speed:.2g}×")
-        self._lbl_speed.setObjectName("lblSpeed")
-        self._lbl_speed.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._lbl_speed.setFixedWidth(48)
-        self._lbl_speed.setToolTip("Current playback speed")
-
-        self._btn_speed_up = QPushButton("►►")
-        self._btn_speed_up.setObjectName("btnSpeedUp")
-        self._btn_speed_up.setToolTip("Increase playback speed")
-        self._btn_speed_up.setFixedWidth(48)
-
-        for w in (self._btn_stop, self._btn_pause,
-                  self._btn_speed_down, self._lbl_speed, self._btn_speed_up):
-            btn_row.addWidget(w)
-
+        btn_row.addWidget(self._btn_pause)
+        btn_row.addWidget(self._btn_speed)
         btn_row.addStretch()
+        btn_row.addWidget(self._btn_stop)
         layout.addLayout(btn_row)
 
         self._tabs.addTab(tab, "Audio Controls")
-        self._update_speed_buttons()
         self._set_audio_controls_enabled(False)
 
     # ------------------------------------------------------------------
@@ -221,11 +211,8 @@ class MainWindow(QMainWindow):
 
     def _set_audio_controls_enabled(self, enabled: bool) -> None:
         """Enable or disable all playback controls in the audio tab."""
-        for w in (self._btn_stop, self._btn_pause,
-                  self._btn_speed_down, self._btn_speed_up):
+        for w in (self._btn_stop, self._btn_pause, self._btn_speed):
             w.setEnabled(enabled)
-        # Speed label always visible but muted when disabled
-        self._lbl_speed.setEnabled(enabled)
 
     # ------------------------------------------------------------------
     # Menu
@@ -270,15 +257,15 @@ class MainWindow(QMainWindow):
     def _connect_signals(self) -> None:
         # Controls tab
         self._btn_choose.clicked.connect(self._choose_file)
-        self._btn_read_text.clicked.connect(self._read_text)
-        self._btn_read_file.clicked.connect(self._read_file)
+        self._btn_read.clicked.connect(self._read)
+        self._btn_buffer.clicked.connect(self._buffer)
+        self._btn_save.clicked.connect(self._save_file)
         self._btn_cancel.clicked.connect(self._cancel_generation)
 
         # Audio tab
         self._btn_stop.clicked.connect(self._stop)
-        self._btn_pause.clicked.connect(self._toggle_pause)
-        self._btn_speed_down.clicked.connect(self._speed_down)
-        self._btn_speed_up.clicked.connect(self._speed_up)
+        self._btn_pause.clicked.connect(self._play_pause_clicked)
+        self._btn_speed.clicked.connect(self._toggle_speed)
 
         # Player signals
         self._player.playback_started.connect(self._on_playback_started)
@@ -287,6 +274,10 @@ class MainWindow(QMainWindow):
         self._player.generation_started.connect(self._on_generation_started)
         self._player.generation_cancelled.connect(self._on_generation_cancelled)
         self._player.cache_used.connect(self._on_cache_used)
+        self._player.buffer_finished.connect(self._on_buffer_finished)
+        self._player.speed_build_started.connect(self._on_speed_build_started)
+        self._player.speed_build_finished.connect(self._on_speed_build_finished)
+        self._player.speed_build_error.connect(self._on_speed_build_error)
 
         # Editor text change → update content dot
         self._editor.textChanged.connect(self._on_editor_text_changed)
@@ -323,38 +314,52 @@ class MainWindow(QMainWindow):
         word_count = len(text.split())
         self._lbl_filename.setText(file_path.name)
         self._lbl_stats.setText(f"Words: {word_count:,}  |  Size: {size_str}")
-        self._btn_read_file.setEnabled(True)
+        self._editor.setPlainText(text)
         self._status_bar.showMessage(f"Loaded: {file_path.name}")
 
     @Slot()
-    def _read_text(self) -> None:
+    def _read(self) -> None:
         text = self._editor.toPlainText().strip()
         if not text:
             self._status_bar.showMessage("Nothing to read — type some text first.")
             return
-        # If text has changed, hide the audio tab while generating new audio
         if not self._player.is_text_cached(text):
             self._set_audio_controls_enabled(False)
         self._tabs.setCurrentIndex(_TAB_CONTROLS)
         self._player.speak(text)
 
     @Slot()
-    def _read_file(self) -> None:
-        if self._loaded_file is None:
-            self._status_bar.showMessage("No file loaded.")
+    def _buffer(self) -> None:
+        text = self._editor.toPlainText().strip()
+        if not text:
+            self._status_bar.showMessage("Nothing to buffer — type some text first.")
             return
-        try:
-            text = self._loaded_file.read_text(encoding="utf-8", errors="replace")
-        except OSError as exc:
-            QMessageBox.critical(self, "Error", f"Could not read file:\n{exc}")
-            return
-        if not text.strip():
-            self._status_bar.showMessage("File is empty.")
-            return
-        if not self._player.is_text_cached(text):
-            self._set_audio_controls_enabled(False)
         self._tabs.setCurrentIndex(_TAB_CONTROLS)
-        self._player.speak(text)
+        self._player.buffer(text)
+
+    @Slot()
+    def _save_file(self) -> None:
+        text = self._editor.toPlainText()
+        if not text.strip():
+            self._status_bar.showMessage("Nothing to save — editor is empty.")
+            return
+        last_dir = self._settings.get_last_dir() or str(Path.home())
+        path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save Text File",
+            last_dir,
+            "Text files (*.txt);;All files (*.*)",
+        )
+        if not path:
+            return
+        file_path = Path(path)
+        try:
+            file_path.write_text(text, encoding="utf-8")
+        except OSError as exc:
+            QMessageBox.critical(self, "Error", f"Could not save file:\n{exc}")
+            return
+        self._settings.set_last_dir(str(file_path.parent))
+        self._status_bar.showMessage(f"Saved: {file_path.name}")
 
     # ------------------------------------------------------------------
     # Slots — audio tab
@@ -362,37 +367,27 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def _stop(self) -> None:
-        self._player.stop()
-        self._btn_pause.setText("⏸  Pause")
-        self._status_bar.showMessage("Stopped.")
-        # Keep tab visible and controls enabled — cache still exists
+        self._player.speak(self._editor.toPlainText())
+        self._status_bar.showMessage("Restarting…")
 
     @Slot()
-    def _toggle_pause(self) -> None:
-        now_paused = self._player.toggle_pause()
-        self._btn_pause.setText("▶  Resume" if now_paused else "⏸  Pause")
-        self._status_bar.showMessage("Paused." if now_paused else "Resumed.")
+    def _play_pause_clicked(self) -> None:
+        if self._player.is_playing:
+            self._player.pause()
+            self._btn_pause.setText("▶  Play")
+            self._status_bar.showMessage("Paused.")
+        else:
+            self._player.play()
+            if not self._player.is_paused:
+                self._btn_pause.setText("⏸  Pause")
+                self._status_bar.showMessage("Playing…")
 
     @Slot()
-    def _speed_down(self) -> None:
-        new_speed = self._player.speed_down()
-        self._lbl_speed.setText(f"{new_speed:.2g}×")
-        self._update_speed_buttons()
-        self._status_bar.showMessage(f"Speed: {new_speed:.2g}×")
-
-    @Slot()
-    def _speed_up(self) -> None:
-        new_speed = self._player.speed_up()
-        self._lbl_speed.setText(f"{new_speed:.2g}×")
-        self._update_speed_buttons()
-        self._status_bar.showMessage(f"Speed: {new_speed:.2g}×")
-
-    def _update_speed_buttons(self) -> None:
-        idx = SPEED_STEPS.index(self._player.speed)
-        # Only enable if audio controls are active (tab visible + cache exists)
-        active = self._tabs.isTabEnabled(_TAB_AUDIO) and self._player.has_cache
-        self._btn_speed_down.setEnabled(active and idx > 0)
-        self._btn_speed_up.setEnabled(active and idx < len(SPEED_STEPS) - 1)
+    def _toggle_speed(self) -> None:
+        new_speed = self._player.toggle_speed()
+        label = f"{new_speed:.0f}x"
+        self._btn_speed.setText(label)
+        self._status_bar.showMessage(f"Speed: {label}")
 
     @Slot()
     def _cancel_generation(self) -> None:
@@ -407,6 +402,8 @@ class MainWindow(QMainWindow):
     @Slot()
     def _on_generation_started(self) -> None:
         self._btn_cancel.setVisible(True)
+        self._btn_read.setEnabled(False)
+        self._btn_buffer.setEnabled(False)
         self._set_audio_controls_enabled(False)
         # Start pulsing dot + elapsed timer
         self._gen_start_time = time.monotonic()
@@ -427,6 +424,8 @@ class MainWindow(QMainWindow):
     def _stop_gen_timer(self) -> None:
         self._gen_timer.stop()
         self._btn_cancel.setVisible(False)
+        self._btn_read.setEnabled(True)
+        self._btn_buffer.setEnabled(True)
         self._status_indicator.set_progress_state(DotState.DARK)
 
     @Slot()
@@ -437,7 +436,6 @@ class MainWindow(QMainWindow):
         self._tabs.setTabToolTip(_TAB_AUDIO, "")
         self._tabs.setCurrentIndex(_TAB_AUDIO)
         self._set_audio_controls_enabled(True)
-        self._update_speed_buttons()
         self._status_indicator.set_content_state(DotState.GREEN)
         self._btn_pause.setText("⏸  Pause")
         self._last_spoken_text = self._editor.toPlainText().strip()
@@ -449,6 +447,27 @@ class MainWindow(QMainWindow):
         self._status_bar.showMessage("Using cached audio…")
 
     @Slot()
+    def _on_buffer_finished(self) -> None:
+        self._stop_gen_timer()
+        self._tabs.setTabEnabled(_TAB_AUDIO, True)
+        self._tabs.setTabToolTip(_TAB_AUDIO, "")
+        self._set_audio_controls_enabled(True)
+        self._status_indicator.set_content_state(DotState.GREEN)
+        self._last_spoken_text = self._editor.toPlainText().strip()
+        self._status_bar.showMessage("Audio buffered — press Read or Play to listen.")
+
+    @Slot()
+    def _on_speed_build_started(self) -> None:
+        self._set_audio_controls_enabled(False)
+        self._status_bar.showMessage("Building audio at new speed…")
+
+    @Slot(float)
+    def _on_speed_build_finished(self, speed: float) -> None:
+        self._set_audio_controls_enabled(True)
+        self._btn_pause.setText("⏸  Pause")
+        self._status_bar.showMessage(f"Playing at {speed:.0f}x…")
+
+    @Slot()
     def _on_generation_cancelled(self) -> None:
         self._stop_gen_timer()
         self._status_indicator.set_content_state(DotState.DARK)
@@ -456,19 +475,25 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def _on_playback_finished(self) -> None:
-        self._btn_pause.setText("⏸  Pause")
+        self._btn_pause.setText("▶  Play")
         self._status_bar.showMessage("Done.")
 
     @Slot(str)
     def _on_playback_error(self, message: str) -> None:
         self._stop_gen_timer()
         self._status_indicator.set_content_state(DotState.RED)
-        self._btn_pause.setText("⏸  Pause")
+        self._btn_pause.setText("▶  Play")
         self._set_audio_controls_enabled(False)
         self._tabs.setTabEnabled(_TAB_AUDIO, False)
         self._tabs.setTabToolTip(_TAB_AUDIO, "Generate audio first")
         self._status_bar.showMessage(f"Error: {message}")
         QMessageBox.critical(self, "Playback Error", message)
+
+    @Slot(str)
+    def _on_speed_build_error(self, message: str) -> None:
+        self._set_audio_controls_enabled(True)
+        self._status_bar.showMessage(f"Speed error: {message}")
+        QMessageBox.critical(self, "Speed Processing Error", message)
 
     @Slot()
     def _on_editor_text_changed(self) -> None:
