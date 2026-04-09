@@ -21,6 +21,18 @@ Google Text-to-Speech (gTTS) and PySide6.
 
 ---
 
+## Security
+
+- Text entered in the app is sent to Google for speech synthesis. Avoid sensitive content.
+
+---
+
+## Documentation
+
+- Project review: [`docs/PROJECT_REVIEW.md`](docs/PROJECT_REVIEW.md)
+
+---
+
 ## Installation
 ### From source (development)
 
